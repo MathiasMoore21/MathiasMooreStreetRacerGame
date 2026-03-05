@@ -9,6 +9,7 @@ An exciting urban runner game built in Java where players navigate through city 
 
 Street Racer is an endless runner-style game set in a vibrant urban environment. Players control a runner who must survive as long as possible while navigating through procedurally generated obstacles. The longer you survive, the higher your score!
 
+(There is a short demo included in the files)
 
 ## How to Download and Run
 
