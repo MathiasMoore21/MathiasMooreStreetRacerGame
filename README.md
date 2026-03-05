@@ -28,4 +28,4 @@ Street Racer is an endless runner-style game set in a vibrant urban environment.
 
 #### Option 2: Clone (if you have Git)
 ```bash
-git clone https://github.com/YOUR-USERNAME/street-racer.git
+git clone https://github.com/MathiasMoore21/MathiasMooreStreetRacerGame
