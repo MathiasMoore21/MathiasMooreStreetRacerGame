@@ -1,0 +1,11 @@
+#BlueJ class context
+comment0.target=PowerUp
+comment1.params=p\ xPos\ runner
+comment1.target=PowerUp(javax.swing.JPanel,\ int,\ Runner)
+comment2.params=
+comment2.target=void\ update()
+comment3.params=g2
+comment3.target=void\ draw(java.awt.Graphics2D)
+comment4.params=
+comment4.target=boolean\ isActive()
+numComments=5

@@ -1,0 +1,17 @@
+#BlueJ class context
+comment0.target=TutorialPanel
+comment1.params=
+comment1.target=TutorialPanel()
+comment2.params=e
+comment2.target=void\ mouseEntered(java.awt.event.MouseEvent)
+comment3.params=e
+comment3.target=void\ mouseExited(java.awt.event.MouseEvent)
+comment4.params=content\ title
+comment4.target=void\ addSectionHeader(javax.swing.JPanel,\ java.lang.String)
+comment5.params=content\ points\ color
+comment5.target=void\ addBulletPoints(javax.swing.JPanel,\ java.lang.String[],\ java.awt.Color)
+comment6.params=content\ title\ description\ color
+comment6.target=void\ addBarricadeExplanation(javax.swing.JPanel,\ java.lang.String,\ java.lang.String,\ java.awt.Color)
+comment7.params=content\ title\ description\ color
+comment7.target=void\ addPowerUpExplanation(javax.swing.JPanel,\ java.lang.String,\ java.lang.String,\ java.awt.Color)
+numComments=8

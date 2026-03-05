@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.target=ImageManager
+comment0.text=\r\n\ \ \ The\ ImageManager\ class\ manages\ the\ loading\ and\ processing\ of\ images.\r\n
+comment1.params=
+comment1.target=ImageManager()
+comment2.params=fileName
+comment2.target=java.awt.Image\ loadImage(java.lang.String)
+numComments=3

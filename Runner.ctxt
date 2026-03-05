@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Runner
+comment1.params=p\ xPos\ yPos
+comment1.target=Runner(javax.swing.JPanel,\ int,\ int)
+comment2.params=g
+comment2.target=void\ draw(java.awt.Graphics)
+comment3.params=direction
+comment3.target=void\ move(int)
+comment4.params=
+comment4.target=java.awt.geom.Rectangle2D.Double\ getBoundingRectangle()
+comment5.params=
+comment5.target=int\ getX()
+comment6.params=
+comment6.target=int\ getY()
+numComments=7

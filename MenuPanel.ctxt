@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=MenuPanel
+comment1.params=w
+comment1.target=MenuPanel(GameWindow)
+comment2.params=button\ bg
+comment2.target=void\ styleButton(javax.swing.JButton,\ java.awt.Color)
+comment3.params=e
+comment3.target=void\ mouseEntered(java.awt.event.MouseEvent)
+comment4.params=e
+comment4.target=void\ mouseExited(java.awt.event.MouseEvent)
+comment5.params=
+comment5.target=void\ startGame()
+comment6.params=
+comment6.target=void\ showHighScores()
+numComments=7

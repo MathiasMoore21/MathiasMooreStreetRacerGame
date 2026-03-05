@@ -1,0 +1,6 @@
+Mathias,120,Easy
+Mathias,12,Easy
+Mathias,80,Medium
+MHM,25,Medium
+Mathias,9,Medium
+Matt,10,Hard

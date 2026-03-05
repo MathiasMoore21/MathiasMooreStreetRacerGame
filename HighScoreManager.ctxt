@@ -1,0 +1,19 @@
+#BlueJ class context
+comment0.target=HighScoreManager
+comment1.params=
+comment1.target=HighScoreManager()
+comment2.params=
+comment2.target=HighScoreManager\ getInstance()
+comment3.params=score\ difficulty
+comment3.target=boolean\ isHighScore(int,\ java.lang.String)
+comment4.params=name\ score\ difficulty
+comment4.target=void\ addScore(java.lang.String,\ int,\ java.lang.String)
+comment5.params=difficulty
+comment5.target=java.lang.String\ getFormattedScores(java.lang.String)
+comment6.params=
+comment6.target=java.lang.String\ getAllFormattedScores()
+comment7.params=
+comment7.target=void\ loadScores()
+comment8.params=
+comment8.target=void\ saveScores()
+numComments=9
