@@ -26,7 +26,7 @@ public class GameWindow extends JFrame
     private CardLayout cardLayout;
 
     private JPanel infoPanel;
-    private String currentDifficulty = "Medium"; // KEEP THIS
+    private String currentDifficulty = "Medium";
 
     // Constructor - sets up the main game window
     public GameWindow() {

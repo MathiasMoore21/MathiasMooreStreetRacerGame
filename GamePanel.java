@@ -15,17 +15,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GamePanel extends JPanel {
    
+   // Game entities
    private CopyOnWriteArrayList<Barricade> barricades;  
    private CopyOnWriteArrayList<PowerUp> powerUps;
    private Runner run;
+   private boolean gameOverOverlay;
    
+   // Game state
    private GameWindow window;
    private int points;
    private int timeLeft;
    private boolean gameActive;
    private int baseSpeed;
+   private int currentSpeed;
    
-   // Power-up effects
+   // Power-up timers and states
    private boolean shieldActive = false;
    private float shieldTimer = 0f;
    private boolean slowmoActive = false;
@@ -33,26 +37,27 @@ public class GamePanel extends JPanel {
    private int multiplier = 1;
    private float multiplierTimer = 0f;
    
-   // Background
+   // Background scrolling
    private Image backgroundImage;
    private int backgroundY = 0;
    private int scrollSpeed = 2;
    
-   
+   // Game loop and spawning
    private Timer gameLoopTimer;
    private int powerUpSpawnCounter = 0;
-   private static final int POWER_UP_SPAWN_RATE = 300; // ~10 seconds at 33ms
+   private static final int POWER_UP_SPAWN_RATE = 300;
 
-   // Constructor - sets up game panel
    public GamePanel(GameWindow w) {
        window = w;
        points = 0;
        timeLeft = 30;
        gameActive = false;
+       gameOverOverlay = false;
        
        barricades = new CopyOnWriteArrayList<>();
        powerUps = new CopyOnWriteArrayList<>();
        
+       // Load background image
        try {
            backgroundImage = new ImageIcon("road.png.png").getImage();
            System.out.println("Background image loaded successfully");
@@ -63,7 +68,7 @@ public class GamePanel extends JPanel {
        
        setFocusable(true);
 
-       // Main game loop timer - runs everything
+       // Main game loop timer (approx 30 FPS)
        gameLoopTimer = new Timer(33, e -> {
            if (gameActive) {
                updateGame();
@@ -74,18 +79,18 @@ public class GamePanel extends JPanel {
        });
    }
    
-   // Updates all game objects positions
+   // Update game world
    private void updateGame() {
-       // Update background
+       // Scroll background
        backgroundY += scrollSpeed;
        if (getHeight() > 0 && backgroundY >= getHeight()) {
            backgroundY = 0;
        }
        
        // Update power-up timers
-       updatePowerUpTimers(0.033f); // 33ms in seconds
+       updatePowerUpTimers(0.033f);
        
-       // Update all barricades
+       // Update and remove inactive barricades
        for (Barricade b : barricades) {
            b.update();
            if (!b.isActive()) {
@@ -93,7 +98,7 @@ public class GamePanel extends JPanel {
            }
        }
        
-       // Update all power-ups
+       // Update and remove inactive power-ups
        for (PowerUp p : powerUps) {
            p.update();
            if (!p.isActive()) {
@@ -102,27 +107,24 @@ public class GamePanel extends JPanel {
        }
    }
    
-   // Checks if barricades hit runner
+   // Check for collisions between runner and barricades
    private void checkCollisions() {
-    if (run == null) return;
-    
-    for (Barricade b : barricades) {
-        if (b.checkCollision()) {
-            // First try to consume shield
-            if (consumeShield()) {
-                // Shield blocked it! Remove this barricade
-                b.deactivate();
-                addPoint(); // Bonus point for blocking
-                System.out.println("Shield blocked barricade!");
-            } else {
-                // No shield - game over
-                handleCollision();
-            }
-            break; // Only handle one collision per frame
-        }
-    }
-}
-   // Randomly spawns power-ups over time
+       if (run == null) return;
+       
+       for (Barricade b : barricades) {
+           if (b.checkCollision()) {
+               if (consumeShield()) {
+                   b.deactivate();
+                   addPoint();
+               } else {
+                   handleCollision();
+               }
+               break;
+           }
+       }
+   }
+
+   // Spawn power-ups at random intervals
    private void spawnPowerUps() {
        powerUpSpawnCounter++;
        if (powerUpSpawnCounter >= POWER_UP_SPAWN_RATE) {
@@ -133,7 +135,7 @@ public class GamePanel extends JPanel {
        }
    }
    
-   // Creates initial barricades at start of game
+   // Create initial game objects
    public void createGameEntities() {
        run = new Runner(this, 150, 350);
        barricades.clear(); 
@@ -144,15 +146,16 @@ public class GamePanel extends JPanel {
        addBarricadeWithSpacing(300, 15);
    }
    
-   // Helper to add barricades without overlapping
+   // Add a barricade and ensure it doesn't overlap with existing ones
    private void addBarricadeWithSpacing(int xPos, int yPos) {
        Barricade b = new Barricade(this, xPos, yPos, run);
        b.adjustPosition(new ArrayList<>(barricades));
        barricades.add(b);
    }
    
-   // Starts the game with chosen difficulty and time
+   // Start the game with specified time and difficulty
    public void startGame(int time, String difficulty) {
+       // Set base speed based on difficulty
        switch(difficulty) {
            case "Easy": baseSpeed = 3; break;
            case "Medium": baseSpeed = 5; break;
@@ -161,6 +164,7 @@ public class GamePanel extends JPanel {
            default: baseSpeed = 5;
        }
        
+       // Reset game state
        points = 0;
        gameActive = true;
        multiplier = 1;
@@ -168,6 +172,7 @@ public class GamePanel extends JPanel {
        slowmoActive = false;
        backgroundY = 0;
        powerUpSpawnCounter = 0;
+       currentSpeed = baseSpeed;
        
        timeLeft = time > 0 ? time : -1;
        
@@ -176,15 +181,14 @@ public class GamePanel extends JPanel {
        
        createGameEntities();
        
-       // Set initial speeds
+       // Set initial speed for all barricades
        for (Barricade b : barricades) {
            b.setSpeed(baseSpeed);
        }
        
-       // Start the game loop
        gameLoopTimer.start();
        
-       // Start timer for countdown if not endless
+       // Start countdown timer if time limit is set
        if (time > 0) {
            Timer countdownTimer = new Timer(1000, new ActionListener() {
                public void actionPerformed(ActionEvent e) {
@@ -208,60 +212,59 @@ public class GamePanel extends JPanel {
        repaint();
    }
    
-   // Stops the game
+   // Stop the game
    public void stopGame() {
        gameActive = false;
        gameLoopTimer.stop();
        SoundManager.getInstance().stopClip("background");
    }
    
-   // Updates timers for all active power-ups
+   // Update power-up timers and deactivate when expired
    private void updatePowerUpTimers(float delta) {
-      if (shieldActive) {
-          shieldTimer -= delta;
-          if (shieldTimer <= 0f) {
-              shieldActive = false;
-              shieldTimer = 0f;
-          }
-      }
+       if (shieldActive) {
+           shieldTimer -= delta;
+           if (shieldTimer <= 0f) {
+               shieldActive = false;
+               shieldTimer = 0f;
+           }
+       }
 
-      if (slowmoActive) {
-          slowmoTimer -= delta;
-          if (slowmoTimer <= 0f) {
-              slowmoActive = false;
-              slowmoTimer = 0f;
-              int restored = baseSpeed + (points / 5);
-              for (Barricade b : barricades) {
-                  b.setSpeed(restored);
-              }
-          }
-      }
+       if (slowmoActive) {
+           slowmoTimer -= delta;
+           if (slowmoTimer <= 0f) {
+               slowmoActive = false;
+               slowmoTimer = 0f;
+               for (Barricade b : barricades) {
+                   b.setSpeed(currentSpeed);
+               }
+           }
+       }
 
-      if (multiplier > 1) {
-          multiplierTimer -= delta;
-          if (multiplierTimer <= 0f) {
-              multiplier = 1;
-              multiplierTimer = 0f;
-          }
-      }
+       if (multiplier > 1) {
+           multiplierTimer -= delta;
+           if (multiplierTimer <= 0f) {
+               multiplier = 1;
+               multiplierTimer = 0f;
+           }
+       }
    }
    
-   // Called when player collects a power-up
+   // Apply power-up effects
    public void activatePowerUp(int type) {
        switch(type) {
-           case 0:
+           case PowerUp.SHIELD:
                shieldActive = true;
                shieldTimer += 5f;
                break;
-           case 1:
+           case PowerUp.SLOW:
                slowmoActive = true;
                slowmoTimer += 5f;
+               int slowed = Math.max(1, currentSpeed / 2);
                for (Barricade b : barricades) {
-                   int slowed = Math.max(1, (baseSpeed + (points / 5)) * 3 / 4);
                    b.setSpeed(slowed);
                }
                break;
-           case 2:
+           case PowerUp.EXTRA_TIME:
                if (timeLeft < 0) {
                    addPoint();
                    addPoint();
@@ -271,27 +274,26 @@ public class GamePanel extends JPanel {
                    window.updateTimer(timeLeft);
                }
                break;
-           case 3:
+           case PowerUp.MULTIPLY:
                multiplier = 2;
                multiplierTimer += 10f;
                break;
        }
-       System.out.println("Power-up activated! Type: " + type);
    }
 
-   // Moves runner based on key presses
+   // Move the runner left or right
    public void updateGameEntities(int direction) {
        if (run == null || !gameActive) return;
        run.move(direction);
    }
    
-   // Draws everything on screen
+   // Draw all game graphics
    @Override
    protected void paintComponent(Graphics g) {
        super.paintComponent(g);
        Graphics2D g2 = (Graphics2D) g;
        
-       // Draw background
+       // Draw scrolling background
        if (backgroundImage != null) {
            g2.drawImage(backgroundImage, 0, backgroundY, getWidth(), getHeight(), null);
            g2.drawImage(backgroundImage, 0, backgroundY - getHeight(), getWidth(), getHeight(), null);
@@ -300,20 +302,18 @@ public class GamePanel extends JPanel {
            g2.fillRect(0, 0, getWidth(), getHeight());
        }
        
-       // Draw power-up statuses
        drawPowerUpStatus(g2);
        
-       // Draw barricades
+       // Draw game objects
        for (Barricade b : barricades) {
            b.draw(g2);
        }
       
-       // Draw power-ups
        for (PowerUp p : powerUps) {
            p.draw(g2);
        }
-        
-       // Draw runner
+       
+       // Draw runner with shield effect if active
        if (run != null) {
            if (shieldActive) {
                g2.setColor(new Color(0, 255, 255, 80));
@@ -322,9 +322,15 @@ public class GamePanel extends JPanel {
            }
            run.draw(g2);
        }
+
+       // Draw game over overlay if needed
+       if (gameOverOverlay) {
+           g2.setColor(new Color(0, 0, 0, 150));
+           g2.fillRect(0, 0, getWidth(), getHeight());
+       }
    }
    
-   // Shows active power-ups and their timers
+   // Draw active power-up status text
    private void drawPowerUpStatus(Graphics2D g2) {
        g2.setFont(new Font("Arial", Font.BOLD, 14));
        
@@ -332,79 +338,76 @@ public class GamePanel extends JPanel {
        
        if (shieldActive) {
            g2.setColor(Color.CYAN);
-           int displayShield = (int)Math.ceil(shieldTimer);
-           g2.drawString("🛡️ SHIELD: " + displayShield + "s", 15, yPos);
+           g2.drawString("🛡️ SHIELD: " + (int)Math.ceil(shieldTimer) + "s", 15, yPos);
            yPos += 25;
        }
        
        if (slowmoActive) {
            g2.setColor(new Color(100, 150, 255));
-           int displaySlow = (int)Math.ceil(slowmoTimer);
-           g2.drawString("⏱️ SLOWMO: " + displaySlow + "s", 15, yPos);
+           g2.drawString("⏱️ SLOWMO: " + (int)Math.ceil(slowmoTimer) + "s", 15, yPos);
            yPos += 25;
        }
        
        if (multiplier > 1) {
            g2.setColor(Color.YELLOW);
-           int displayMult = multiplier;
-           int displayMultTime = (int)Math.ceil(multiplierTimer);
-           g2.drawString("✖️ " + displayMult + "x (" + displayMultTime + "s)", 15, yPos);
+           g2.drawString("✖️ " + multiplier + "x (" + (int)Math.ceil(multiplierTimer) + "s)", 15, yPos);
        }
    }
    
-   // Adds point and checks for speed increases/new barricades
+   // Add points and adjust difficulty
    public void addPoint() {
        if (gameActive) {
            points += multiplier;
            window.updatePoints(points);
            
-           int speed = baseSpeed + (points / 15);
+           // Increase speed based on points
+           currentSpeed = baseSpeed + (points / 15);
            if (!slowmoActive) {
                for (Barricade b : barricades) {
-                   b.setSpeed(speed);
+                   b.setSpeed(currentSpeed);
                }
            }
            
+           // Add new barricade every 30 points
            if (points % 30 == 0 && points > 0) {
                addNewBarricade();
            }
        }
    }
    
-   // Creates a new barricade at top of screen
+   // Add a new barricade at the top of the screen
    private void addNewBarricade() {
        int randomX = 50 + (int)(Math.random() * 300);
        Barricade newB = new Barricade(this, randomX, 5, run);
        newB.adjustPosition(new ArrayList<>(barricades));
-       newB.setSpeed(baseSpeed + (points / 5));
+       newB.setSpeed(currentSpeed);
        barricades.add(newB);
    }
    
-   // Game over - called when player hits barricade with no shield
+   // Handle collision with barricade
    public void handleCollision() {
-       
        if (gameActive) {
            gameActive = false;
+           gameOverOverlay = true;
+           repaint();
            gameLoopTimer.stop();
            SoundManager.getInstance().playClip("hit", false);
            window.gameOver(points, false);
        }
    }
-   
-   // Uses shield to block a hit - returns true if shield was active
-   public boolean consumeShield() {
-    if (shieldActive) {
-        shieldActive = false;  // Shield is GONE after blocking
-        shieldTimer = 0f;      // Reset timer
-        System.out.println("Shield consumed to block hit!");
-        return true;
-    }
-    return false;
-}
 
+   // Consume shield if active
+   public boolean consumeShield() {
+       if (shieldActive) {
+           shieldActive = false;
+           shieldTimer = 0f;
+           return true;
+       }
+       return false;
+   }
+
+   // Getters
    public boolean isGameActive() { return gameActive; }
    public Runner getRunner() { return run; }
    public CopyOnWriteArrayList<Barricade> getBarricades() { return barricades; }
-
-
 }

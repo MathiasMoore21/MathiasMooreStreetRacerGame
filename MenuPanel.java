@@ -26,7 +26,7 @@ public class MenuPanel extends JPanel {
         add(title, gbc);
         
         // Subtitle
-        JLabel sub = new JLabel("Dodge the Barricades!");
+        JLabel sub = new JLabel("Dodge the Traffic Cones!");
         sub.setFont(new Font("Arial", Font.ITALIC, 18));
         sub.setForeground(Color.WHITE);
         gbc.gridy = 1;

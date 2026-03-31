@@ -35,7 +35,7 @@ public class TutorialPanel extends JPanel {
         content.add(Box.createVerticalStrut(20));
 
         // ========== BARRICADES SECTION ==========
-        addSectionHeader(content, "🧱 BARRICADE TYPES");
+        addSectionHeader(content, "🧱 CONE TYPES");
 
         // Normal Barricade
         addBarricadeExplanation(content,

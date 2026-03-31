@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JPanel;
 import java.awt.Image;
-
+import java.util.ArrayList;
 
 public class Runner {
 
@@ -20,21 +20,29 @@ public class Runner {
 
    private Color backgroundColour;
    private Dimension dimension;
-   private Image runnerimage;
    
-   // Animation variables
-   private int frame = 0;
-   private boolean moving = false;
-   private int moveCounter = 0;
+   // Animation frames
+   private ArrayList<Image> leftFrames;
+   private ArrayList<Image> rightFrames;
+   private Image currentImage;
+   
+   // Animation timing
+   private int currentFrame;
+   private int animationDelay;
+   private int animationCounter;
+   private boolean moving;
+   private int currentDirection;
+   
+   // Bounce effect when moving
    private float bounceY = 0f;
    private boolean bounceUp = true;
+   private int moveCounter = 0;
 
-   // Constructor - sets up runner at starting position
    public Runner (JPanel p, int xPos, int yPos) {
       panel = p;
       dimension = panel.getSize();
 
-      backgroundColour = panel.getBackground ();
+      backgroundColour = panel.getBackground();
       x = xPos;
       y = yPos;
 
@@ -44,14 +52,35 @@ public class Runner {
       width = 50;
       height = 50;
 
-      runnerimage = ImageManager.loadImage("Runner.png");
+      leftFrames = new ArrayList<>();
+      rightFrames = new ArrayList<>();
+      
+      loadAnimations();
+      
+      currentFrame = 0;
+      animationDelay = 3;
+      animationCounter = 0;
+      moving = false;
+      currentDirection = 2;
+      
+      if (rightFrames.size() > 0) {
+          currentImage = rightFrames.get(0);
+      }
+   }
+   
+   private void loadAnimations() {
+       leftFrames.add(ImageManager.loadImage("runnerleft1.png"));
+       leftFrames.add(ImageManager.loadImage("runnerleft2.png"));
+       leftFrames.add(ImageManager.loadImage("runnerleft3.png"));
+       
+       rightFrames.add(ImageManager.loadImage("runnerright1.png"));
+       rightFrames.add(ImageManager.loadImage("runnerright2.png"));
+       rightFrames.add(ImageManager.loadImage("runnerright3.png"));
    }
 
-   // Draws runner with bounce animation when moving
    public void draw(Graphics g) {
       Graphics2D g2 = (Graphics2D) g;
       
-      // Update bounce if moving
       if (moving) {
           if (bounceUp) {
               bounceY += 0.3f;
@@ -67,19 +96,49 @@ public class Runner {
           }
       }
       
-      // Draw shadow (size varies with bounce)
+      updateAnimation();
+      
       int shadowWidth = width - 10;
       int shadowHeight = 5;
       g2.setColor(new Color(0, 0, 0, 100));
       g2.fillOval(x + 5, y + height - 5 + (int)(bounceY/2), shadowWidth, shadowHeight);
       
-      // Draw runner with bounce offset
-      g2.drawImage(runnerimage, x, y + (int)bounceY, width, height, null);
+      g2.drawImage(currentImage, x, y + (int)bounceY, width, height, null);
+   }
+   
+   private void updateAnimation() {
+      animationCounter++;
+      if (animationCounter >= animationDelay) {
+         animationCounter = 0;
+         currentFrame++;
+         
+         ArrayList<Image> currentAnimation;
+         
+         if (moving) {
+            if (currentDirection == 1) {
+               currentAnimation = leftFrames;
+            } else {
+               currentAnimation = rightFrames;
+            }
+         } else {
+            if (currentDirection == 2 && rightFrames.size() > 0) {
+                currentImage = rightFrames.get(0);
+            } else if (leftFrames.size() > 0) {
+                currentImage = leftFrames.get(0);
+            }
+            return;
+         }
+         
+         if (currentFrame >= currentAnimation.size()) {
+            currentFrame = 0;
+         }
+         
+         currentImage = currentAnimation.get(currentFrame);
+      }
    }
 
-   // Moves runner in specified direction (1=left,2=right,3=down,4=up)
    public void move (int direction) {
-      if (!panel.isVisible ()) return;
+      if (!panel.isVisible()) return;
       
       dimension = panel.getSize();
       
@@ -87,6 +146,7 @@ public class Runner {
       moveCounter = 10;
       bounceY = 0;
       bounceUp = true;
+      currentDirection = direction;
 
       if (direction == 1) {    
           x = x - dx;
@@ -108,9 +168,7 @@ public class Runner {
       }
    }
 
-   // Returns rectangle for collision detection
    public Rectangle2D.Double getBoundingRectangle() {
-      // Use actual y position without bounce for collision
       return new Rectangle2D.Double(x, y, width, height);
    }
    

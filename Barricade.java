@@ -3,12 +3,13 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 
 public class Barricade {
-
+    private Image barrImage;
     private double speedMultiplier = 1.0;
     private JPanel panel;
     private int x;
@@ -46,6 +47,7 @@ public class Barricade {
         
         random = new Random();
         movePattern = random.nextInt(4);
+        loadImage();
         
         switch(movePattern) {
             case 0: dy = 5; dx = 0; break;
@@ -70,6 +72,14 @@ public class Barricade {
         }
     }
     
+    private void loadImage() {
+    switch(movePattern) {
+        case 0: barrImage = ImageManager.loadImage("conenormal.png"); break;
+        case 1: barrImage = ImageManager.loadImage("conezigzag.png"); break;
+        case 2: barrImage = ImageManager.loadImage("conefast.png"); break;
+        case 3: barrImage = ImageManager.loadImage("conepatrol.png"); break;
+    }
+}
     // Checks if this barricade is too close to any other
     private boolean isTooCloseToOthers(List<Barricade> others) {
         for (Barricade b : others) {
@@ -186,40 +196,24 @@ public class Barricade {
    
     // Draws barricade on screen
     public void draw(Graphics2D g2) {
-        if (!active) return;
-        
-        Color mainColor;
-        switch(movePattern) {
-            case 0: mainColor = Color.ORANGE; break;
-            case 1: mainColor = new Color(255, 200, 0); break;
-            case 2: mainColor = Color.RED; break;
-            case 3: mainColor = new Color(0, 150, 0); break;
-            default: mainColor = Color.ORANGE;
-        }
+    if (!active) return;
 
-        int pulseOffset = (int)(pulse * 3);
+    int pulseOffset = (int)(pulse * 3);
 
-        g2.setColor(mainColor);
-        g2.fillRect(x, y, 30 + pulseOffset, 35);
-
-        g2.setColor(Color.WHITE);
-        g2.fillRect(x, y + 8, 30 + pulseOffset, 3);
-        g2.fillRect(x, y + 20, 30 + pulseOffset, 3);
-        g2.fillRect(x, y + 32, 30 + pulseOffset, 3);
-
-        g2.setColor(Color.DARK_GRAY);
-        g2.fillRect(x - 3, y + 40, 33 + pulseOffset, 5);
-        g2.fillRect(x - 3, y + 50, width + 1 + pulseOffset, 5);
-
-        g2.setColor(Color.BLACK);
-        g2.setFont(new Font("Arial", Font.BOLD, 8));
-        String label = movePattern == 0 ? "NORMAL" : 
-                      movePattern == 1 ? "ZIGZAG" : 
-                      movePattern == 2 ? "FAST" : "PATROL";
-        g2.drawString(label, x + 2, y - 2);
-
-        barr1 = new Rectangle2D.Double(x, y, 25 + pulseOffset, 35);
+    if (barrImage != null) {
+        g2.drawImage(barrImage, x, y, width + pulseOffset, height, null);
     }
+
+   
+    g2.setColor(Color.BLACK);
+    g2.setFont(new Font("Arial", Font.BOLD, 8));
+    String label = movePattern == 0 ? "NORMAL" : 
+                  movePattern == 1 ? "ZIGZAG" : 
+                  movePattern == 2 ? "FAST" : "PATROL";
+    g2.drawString(label, x + 2, y - 2);
+
+    barr1 = new Rectangle2D.Double(x, y, 25 + pulseOffset, 35);
+}
 }
 
   
