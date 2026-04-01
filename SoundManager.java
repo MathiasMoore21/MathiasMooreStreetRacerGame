@@ -18,7 +18,7 @@ public class SoundManager {                // a Singleton class
         clips.put("hit", clip);         // Store as "hit"
     }
     
-    clip = loadClip("background.wav");  // Make sure you have this file
+    clip = loadClip("background.wav");  
     if (clip != null) {
         clips.put("background", clip);
         System.out.println("Background sound loaded");
